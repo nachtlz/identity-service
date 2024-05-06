@@ -1,9 +1,11 @@
 package app.identityservice.controller;
 
 import app.identityservice.dto.AuthRequest;
+import app.identityservice.dto.PersonDTO;
 import app.identityservice.dto.TokenDTO;
 import app.identityservice.entity.UserCredential;
 import app.identityservice.service.AuthService;
+import app.identityservice.service.UserCredentialService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +13,8 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Optional;
 
 @AllArgsConstructor
 @RestController
@@ -21,13 +25,16 @@ public class AuthController {
 
     private AuthenticationManager authenticationManager;
 
+    private UserCredentialService userCredentialService;
+
     @PostMapping("/register")
-    public ResponseEntity<String> addNewUser(@RequestBody UserCredential user) {
+    public ResponseEntity<PersonDTO> addNewUser(@RequestBody UserCredential user) {
         try {
-            authService.saveUser(user);
-            return ResponseEntity.ok("Created");
+            UserCredential userSaved = authService.saveUser(user);
+            PersonDTO personDTO = new PersonDTO(userSaved.getId(), userSaved.getUsername());
+            return ResponseEntity.ok(personDTO);
         } catch (Exception e) {
-            return new ResponseEntity<>("Duplicated username", HttpStatus.CONFLICT);
+            return new ResponseEntity<>(new PersonDTO(0, ""), HttpStatus.CONFLICT);
         }
     }
 
@@ -35,7 +42,8 @@ public class AuthController {
     public ResponseEntity<TokenDTO> getToken(@RequestBody AuthRequest authRequest) {
         Authentication authenticate = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword()));
         if(authenticate.isAuthenticated()) {
-            TokenDTO tokenDTO = new TokenDTO(authService.generateToken(authRequest.getUsername()));
+            UserCredential userCredential = userCredentialService.findByUsername(authRequest.getUsername());
+            TokenDTO tokenDTO = new TokenDTO(authService.generateToken(authRequest.getUsername()), userCredential.getId());
             return new ResponseEntity<>(tokenDTO, HttpStatus.OK);
         } else {
             throw new RuntimeException("Invalid access");

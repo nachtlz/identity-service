@@ -26,7 +26,11 @@ public class AuthService {
     }
 
     public String generateToken(String username) {
-        return jwtService.generateToken(username);
+        try {
+            return jwtService.generateToken(username);
+        } catch (Exception e) {
+            throw new RuntimeException("User not found", e);
+        }
     }
 
     public void validateToken(String token) {

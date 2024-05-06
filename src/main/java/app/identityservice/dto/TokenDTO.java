@@ -10,4 +10,5 @@ import lombok.NoArgsConstructor;
 public class TokenDTO {
 
     private String token;
+    private int id;
 }
