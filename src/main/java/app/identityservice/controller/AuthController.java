@@ -1,9 +1,10 @@
 package app.identityservice.controller;
 
 import app.identityservice.dto.AuthRequest;
-import app.identityservice.dto.PersonDTO;
+import app.identityservice.dto.UserCredentialDTO;
 import app.identityservice.dto.TokenDTO;
 import app.identityservice.entity.UserCredential;
+import app.identityservice.mapper.UserCredentialMapper;
 import app.identityservice.service.AuthService;
 import app.identityservice.service.UserCredentialService;
 import lombok.AllArgsConstructor;
@@ -13,8 +14,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Optional;
 
 @AllArgsConstructor
 @RestController
@@ -28,13 +27,12 @@ public class AuthController {
     private UserCredentialService userCredentialService;
 
     @PostMapping("/register")
-    public ResponseEntity<PersonDTO> addNewUser(@RequestBody UserCredential user) {
+    public ResponseEntity<UserCredentialDTO> addNewUser(@RequestBody UserCredential user) {
         try {
-            UserCredential userSaved = authService.saveUser(user);
-            PersonDTO personDTO = new PersonDTO(userSaved.getId(), userSaved.getUsername());
-            return ResponseEntity.ok(personDTO);
+            UserCredentialDTO userCredentialDTO = authService.saveUser(user);
+            return ResponseEntity.ok(userCredentialDTO);
         } catch (Exception e) {
-            return new ResponseEntity<>(new PersonDTO(0, ""), HttpStatus.CONFLICT);
+            return new ResponseEntity<>(new UserCredentialDTO(0, ""), HttpStatus.CONFLICT);
         }
     }
 
